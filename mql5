@@ -1,0 +1,88 @@
+
+//+------------------------------------------------------------------+
+//|                                                   Outside Bar MT4 |
+//|                                      Copyright 2022, Forex Robot Easy Team |
+//|                                              https://www.forexroboteasy.com |
+//+------------------------------------------------------------------+
+
+// Function to identify outside bars
+bool IsOutsideBar(int bar)
+{
+   if (High[bar] > High[bar+1] && Low[bar] < Low[bar+1])
+      return true;
+   else
+      return false;
+}
+
+// Function to detect bullish outside bars
+bool IsBullishOutsideBar(int bar)
+{
+   if (High[bar] > High[bar+1] && Low[bar] < Low[bar+1] && Close[bar] > Open[bar])
+      return true;
+   else
+      return false;
+}
+
+// Function to detect bearish outside bars
+bool IsBearishOutsideBar(int bar)
+{
+   if (High[bar] > High[bar+1] && Low[bar] < Low[bar+1] && Close[bar] < Open[bar])
+      return true;
+   else
+      return false;
+}
+
+// Function to place a buy stop order
+void PlaceBuyStopOrder(double price)
+{
+   double sl = price - (Ask - Bid) * 2;
+   double tp = price + (Ask - Bid) * 2;
+   OrderSend(Symbol(), OP_BUYSTOP, 0.01, price, 10, sl, tp, 'Buy Stop Order', 0, 0, Green);
+}
+
+// Function to place a sell stop order
+void PlaceSellStopOrder(double price)
+{
+   double sl = price + (Ask - Bid) * 2;
+   double tp = price - (Ask - Bid) * 2;
+   OrderSend(Symbol(), OP_SELLSTOP, 0.01, price, 10, sl, tp, 'Sell Stop Order', 0, 0, Red);
+}
+
+//+------------------------------------------------------------------+
+//| Expert initialization function                                   |
+//+------------------------------------------------------------------+
+int OnInit()
+{
+   return(INIT_SUCCEEDED);
+}
+
+//+------------------------------------------------------------------+
+//| Expert deinitialization function                                 |
+//+------------------------------------------------------------------+
+void OnDeinit(const int reason)
+{
+}
+
+//+------------------------------------------------------------------+
+//| Expert start function                                            |
+//+------------------------------------------------------------------+
+void OnTick()
+{
+   int currentBar = Bars - 1;
+   
+   if (IsOutsideBar(currentBar))
+   {
+      if (IsBullishOutsideBar(currentBar))
+      {
+         double buyPrice = High[currentBar] + (Ask - Bid) * 0.5;
+         PlaceBuyStopOrder(buyPrice);
+      }
+      else if (IsBearishOutsideBar(currentBar))
+      {
+         double sellPrice = Low[currentBar] - (Ask - Bid) * 0.5;
+         PlaceSellStopOrder(sellPrice);
+      }
+   }
+}
+
+//+------------------------------------------------------------------+
